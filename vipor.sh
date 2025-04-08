@@ -168,22 +168,23 @@ fi
 echo -e "${INFO}📝 Creating Dockerfile... ${NC}"
 cat <<EOL > Dockerfile
 # Using the latest Ubuntu as the base image
-FROM ubuntu:latest
+FROM ubuntu:22.04
 
 # Install necessary tools
 RUN apt-get update && apt-get install -y \\
     wget \\
     tar
 
-# Download and extract hellminer
-RUN wget https://github.com/doktor83/SRBMiner-Multi/releases/download/2.8.1/SRBMiner-Multi-2-8-1-Linux.tar.gz && \\
-    tar -xvzf SRBMiner-Multi-2-8-1-Linux.tar.gz && \\
-    rm SRBMiner-Multi-2-8-1-Linux.tar.gz
+WORKDIR /vipor-docker
 
-WORKDIR /SRBMiner-Multi-2-8-1
+# Download and extract hellminer
+RUN wget https://github.com/hellcatz/hminer/releases/download/v0.59.1/hellminer_linux64.tar.gz && \\
+    tar -xvzf hellminer_linux64.tar.gz && \\
+    chmod +x hellminer && \\
+    rm hellminer_linux64.tar.gz
 
 # Run the miner with provided parameters
-CMD ["/bin/bash", "-c", "./SRBMiner-MULTI -a verushash -o $pool -u $address.$worker_name -p x $cpu_devices"]
+CMD ["/bin/bash", "-c", "./hellminer -c $pool -u $address.$worker_name -p x $cpu_devices"]
 EOL
 
 # Set container name and build the image
@@ -193,7 +194,7 @@ docker build -t $container_name .
 
 # Run the Docker container
 echo -e "${INFO}🚀 Running Docker container... ${NC}"
-docker run -d --name $container_name --restart unless-stopped $container_name
+docker run -d --name $container_name --restart unless-stopped -v /usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu $container_name
 
 # Success message with emojis
 echo -e "${SUCCESS}🎉🚀✨ Your Docker container is now running with automatic restart enabled! ${NC}"
